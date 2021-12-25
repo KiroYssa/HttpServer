@@ -23,7 +23,6 @@ namespace HTTPServer
         {
             BinaryWriter wr = new BinaryWriter(File.Open("redirectionRules.txt", FileMode.Create));
             wr.Write("aboutus.html,aboutus2.html");
-            wr.Write("main.html,main.html");
 
 
             // TODO: Create file named redirectionRules.txt
