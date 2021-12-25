@@ -30,19 +30,46 @@ namespace HTTPServer
         List<string> headerLines = new List<string>();
         public Response(StatusCode code, string contentType, string content, string redirectoinPath)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
             // TODO: Add headlines (Content-Type, Content-Length,Date, [location if there is redirection])
-
+            headerLines.Add(GetStatusLine(code));
+            headerLines.Add("Content-type: " + "text\\html");
+            headerLines.Add("Content-Length: " + content.Length);
+            headerLines.Add("Location: " + redirectoinPath);
 
             // TODO: Create the request string
-
+            for(int i = 0; i < 0; i++)
+            {
+                responseString += headerLines[i] + "\r\n";
+            }
+            
         }
 
         private string GetStatusLine(StatusCode code)
         {
             // TODO: Create the response status line and return it
             string statusLine = string.Empty;
-
+            statusLine = Configuration.ServerHTTPVersion + " ";
+            if(code.Equals(200))
+            {
+                statusLine += "200 OK";
+            }
+            else if (code.Equals(500))
+            {
+                statusLine += "500 InternalServerError";
+            }
+            else if (code.Equals(404))
+            {
+                statusLine += "404 NotFound";
+            }
+            else if (code.Equals(400))
+            {
+                statusLine += "400 BadRequest";
+            }
+            else if (code.Equals(301))
+            {
+                statusLine += "301 Redirect";
+            }
             return statusLine;
         }
     }
