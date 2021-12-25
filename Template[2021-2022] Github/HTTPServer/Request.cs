@@ -76,21 +76,7 @@ namespace HTTPServer
                     LoadHeaderLines(); //request Lines [1]
 
 
-                //////////////////////
-                // TRIAL Printing (Can be removed)
-
-                Console.WriteLine("Method: " + method + "\n");
-                Console.WriteLine("HTTP Version: " + httpVersion.ToString() + "\n");
-                Console.WriteLine("URI: " + relativeURI + "\n");
-                Console.WriteLine("Count things:" + count + "\n");
-
-                foreach (var word in HeaderLines)
-                {
-                    Console.WriteLine("Key: " + word.Key + "\n");
-                    Console.WriteLine("Value: " + word.Value + "\n");
-                }
-
-                /////////////////////
+               
                 return true;
             }
             else
