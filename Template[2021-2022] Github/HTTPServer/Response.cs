@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -35,13 +35,17 @@ namespace HTTPServer
             headerLines.Add(GetStatusLine(code));
             headerLines.Add("Content-type: " + "text\\html");
             headerLines.Add("Content-Length: " + content.Length);
-            headerLines.Add("Location: " + redirectoinPath);
-
-            // TODO: Create the request string
-            for(int i = 0; i < 0; i++)
+            if (redirectoinPath.Length != 0)
             {
-                responseString += headerLines[i] + "\r\n";
+                headerLines.Add("Location: " + redirectoinPath);
             }
+            // TODO: Create the request string
+            foreach(var lines in headerLines)
+            {
+                responseString += lines + "\r\n";
+
+            }
+
             
         }
 
@@ -50,6 +54,7 @@ namespace HTTPServer
             // TODO: Create the response status line and return it
             string statusLine = string.Empty;
             statusLine = Configuration.ServerHTTPVersion + " ";
+            
             if(code.Equals(200))
             {
                 statusLine += "200 OK";
