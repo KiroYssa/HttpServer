@@ -1,0 +1,10 @@
+C:\Users\dell\Desktop\Template\HTTPServer\bin\Debug\HTTPServer.exe
+C:\Users\dell\Desktop\Template\HTTPServer\bin\Debug\HTTPServer.pdb
+C:\Users\dell\Desktop\Template\HTTPServer\obj\x86\Debug\HTTPServer.exe
+C:\Users\dell\Desktop\Template\HTTPServer\obj\x86\Debug\HTTPServer.pdb
+D:\CS\College\7th Semester\Computer Networks\Labs\Project Material\Template[2021-2022]\HTTPServer\bin\Debug\HTTPServer.exe
+D:\CS\College\7th Semester\Computer Networks\Labs\Project Material\Template[2021-2022]\HTTPServer\bin\Debug\HTTPServer.pdb
+D:\CS\College\7th Semester\Computer Networks\Labs\Project Material\Template[2021-2022]\HTTPServer\obj\x86\Debug\HTTPServer.csproj.AssemblyReference.cache
+D:\CS\College\7th Semester\Computer Networks\Labs\Project Material\Template[2021-2022]\HTTPServer\obj\x86\Debug\HTTPServer.csproj.CoreCompileInputs.cache
+D:\CS\College\7th Semester\Computer Networks\Labs\Project Material\Template[2021-2022]\HTTPServer\obj\x86\Debug\HTTPServer.exe
+D:\CS\College\7th Semester\Computer Networks\Labs\Project Material\Template[2021-2022]\HTTPServer\obj\x86\Debug\HTTPServer.pdb
