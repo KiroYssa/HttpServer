@@ -33,47 +33,55 @@ namespace HTTPServer
             //throw new NotImplementedException();
             // TODO: Add headlines (Content-Type, Content-Length,Date, [location if there is redirection])
             headerLines.Add(GetStatusLine(code));
-            headerLines.Add("Content-type: " + "text\\html");
+            headerLines.Add("Content-type: "+contentType);
             headerLines.Add("Content-Length: " + content.Length);
+            headerLines.Add("Date: " + DateTime.Now.ToString("ddd, dd MMM yyy HH':'mm':'ss 'GMT'"));
+
+
             if (redirectoinPath.Length != 0)
             {
                 headerLines.Add("Location: " + redirectoinPath);
             }
             // TODO: Create the request string
-            foreach(var lines in headerLines)
+            foreach (var lines in headerLines)
             {
                 responseString += lines + "\r\n";
 
             }
 
-            
+            responseString += "\r\n" + content;
+
         }
 
         private string GetStatusLine(StatusCode code)
         {
             // TODO: Create the response status line and return it
-            string statusLine = string.Empty;
-            statusLine = Configuration.ServerHTTPVersion + " ";
-            
-            if(code.Equals(200))
+            string statusLine = null;
+
+            if (code == StatusCode.OK)
             {
-                statusLine += "200 OK";
+                statusLine = Configuration.ServerHTTPVersion + " 200 OK";
+
             }
-            else if (code.Equals(500))
+            else if (code == StatusCode.InternalServerError)
             {
-                statusLine += "500 InternalServerError";
+                statusLine = Configuration.ServerHTTPVersion + " 500 InternalServerError";
+
             }
-            else if (code.Equals(404))
+            else if (code == StatusCode.NotFound)
             {
-                statusLine += "404 NotFound";
+                statusLine = Configuration.ServerHTTPVersion + " 404 NotFound";
+
             }
-            else if (code.Equals(400))
+            else if (code == StatusCode.BadRequest)
             {
-                statusLine += "400 BadRequest";
+                statusLine = Configuration.ServerHTTPVersion + " 400 BadRequest";
+
             }
-            else if (code.Equals(301))
+            else if (code == StatusCode.Redirect)
             {
-                statusLine += "301 Redirect";
+                statusLine = Configuration.ServerHTTPVersion + " 301 Redirect";
+
             }
             return statusLine;
         }

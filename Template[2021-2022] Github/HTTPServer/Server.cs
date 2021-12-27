@@ -15,29 +15,33 @@ namespace HTTPServer
         IPEndPoint iep;
         public Server(int portNumber, string redirectionMatrixPath)
         {
-             iep = new IPEndPoint( IPAddress.Any, portNumber);
+            IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
+            iep = new IPEndPoint( ipAddress, portNumber);
             this.LoadRedirectionRules(redirectionMatrixPath);
-            this.serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
             //TODO: call this.LoadRedirectionRules passing redirectionMatrixPath to it
             //TODO: initialize this.serverSocket
+            serverSocket.Bind(iep);
         }
 
         public void StartServer()
         {
-            serverSocket.Bind(iep);
+           
             serverSocket.Listen(1000);
             // TODO: Listen to connections, with large backlog.
-
+        
             // TODO: Accept connections in while loop and start a thread for each connection on function "Handle Connection"
             while (true)
             {
                 Socket clientSocket = this.serverSocket.Accept();
+                Console.WriteLine("New client accepted: {0}", 	clientSocket.RemoteEndPoint);
 
                 Thread newthread = new Thread(new ParameterizedThreadStart(HandleConnection));
                 newthread.Start(clientSocket);
                 //TODO: accept connections and start thread for each accepted connection.
 
             }
+         
         }
 
         public void HandleConnection(object obj)
@@ -75,6 +79,8 @@ namespace HTTPServer
                     // TODO: Call HandleRequest Method that returns the response
                     byte[] Res = Encoding.ASCII.GetBytes(Response);
                     clientSock.Send(Res);
+                    Console.WriteLine("Response is Sent");
+                    
                     // TODO: Send Response back to client
 
                 }
@@ -90,37 +96,80 @@ namespace HTTPServer
 
         Response HandleRequest(Request request)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
             Response NewRes;
             string content="";
+
             try
             {
-              bool flag=request.ParseRequest();
+                 bool flag=request.ParseRequest();
+                string HTMLcontent;
                 string redirect = request.relativeURI;
+
                 //TODO: check for bad request 
-                if (flag)
+                if (!flag)
                 {
-                   string c= Configuration.BadRequestDefaultPageName;
-                    NewRes = new Response(StatusCode.BadRequest, "text/html",content ,c);
+                    HTMLcontent = GetPhysicalFile(Configuration.BadRequestDefaultPageName);
+                    NewRes = new Response(StatusCode.BadRequest, "text/html", HTMLcontent, "");
+
                 }
-                //TODO: map the relativeURI in request to get the physical path of the resource.
-                GetRedirectionPagePathIFExist(redirect);
-                //TODO: check for redirect
-                
-                
+                else
+                {
+                   
+                    //TODO: map the relativeURI in request to get the physical path of the resource.
+                    string NotFoundTemp = string.Format(Configuration.RootPath + "\\" + redirect.Trim('/'));
+                    Console.WriteLine(NotFoundTemp);
+                    //TODO: check for redirect
+                    if (!File.Exists(NotFoundTemp))
+                    {
+
+                        Console.WriteLine("Not Found ");
+
+                        HTMLcontent = GetPhysicalFile(Configuration.NotFoundDefaultPageName);
+                        Console.WriteLine(HTMLcontent);
+                        NewRes = new Response(StatusCode.NotFound, "text/html", HTMLcontent, "");
+
+                    }
+                    else
+                    {
+                        string RedirectedPage = GetRedirectionPagePathIFExist(redirect.Trim('/'));
+                        Console.WriteLine(RedirectedPage+120);
+                        if (!RedirectedPage.Equals(string.Empty))
+                        {
+                            Console.WriteLine("In Redirection");
+                            HTMLcontent = GetPhysicalFile(Configuration.RedirectionDefaultPageName);
+                            Console.WriteLine(HTMLcontent);
+                            NewRes = new Response(StatusCode.Redirect, "text/html", HTMLcontent, RedirectedPage);
+                          
+                            
+                        }
+                        else
+                        {
+                            HTMLcontent = GetPhysicalFile(redirect);
+                            NewRes = new Response(StatusCode.OK, "text/html", HTMLcontent, "");
+
+                        }
+                    }
+                }
+
+               
+
                 //TODO: check file exists
 
                 //TODO: read the physical file
 
                 // Create OK response
+              
             }
             catch (Exception ex)
             {
                 Logger.LogException(ex);
                 // TODO: log exception using Logger class
                 NewRes = new Response(StatusCode.InternalServerError, "text/html", content, Configuration.InternalErrorDefaultPageName);
+                
                 // TODO: in case of exception, return Internal Server Error. 
             }
+            return NewRes;
         }
 
         private string GetRedirectionPagePathIFExist(string relativePath)
@@ -133,8 +182,11 @@ namespace HTTPServer
             //Continue to read until you reach end of file
                 foreach(var Rule in Configuration.RedirectionRules)
             {
+                Console.WriteLine(Rule.Key);
+
                 if (relativePath.Equals(Rule.Key))
                 {
+                   
                     return Rule.Value;
                 }
             }
@@ -194,6 +246,17 @@ namespace HTTPServer
                 // TODO: log exception using Logger class
                 Environment.Exit(1);
             }
+        }
+
+        private string GetPhysicalFile(string relativeURI)
+        {
+
+            string PathFile = string.Format(Configuration.RootPath + "\\" + relativeURI);
+            string data;
+            // Console.WriteLine(PathFile);
+            using (WebClient web1 = new WebClient())
+                data = web1.DownloadString(PathFile);//main.html
+            return data;
         }
     }
 }
