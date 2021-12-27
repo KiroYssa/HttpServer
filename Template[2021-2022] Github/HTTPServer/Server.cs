@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +15,7 @@ namespace HTTPServer
         IPEndPoint iep;
         public Server(int portNumber, string redirectionMatrixPath)
         {
-             iep = new IPEndPoint( IPAddress.Any, portNumber);
+            iep = new IPEndPoint(IPAddress.Any, portNumber);
             this.LoadRedirectionRules(redirectionMatrixPath);
             this.serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             //TODO: call this.LoadRedirectionRules passing redirectionMatrixPath to it
@@ -57,7 +57,7 @@ namespace HTTPServer
                 {
                     data = new byte[1024];
                     receivedLength = clientSock.Receive(data);
-                   
+
                     if (receivedLength == 0)
                     {
                         Console.WriteLine("Client: {0} ended the connection", clientSock.RemoteEndPoint);
@@ -67,10 +67,10 @@ namespace HTTPServer
                     // TODO: Receive request
 
                     // TODO: break the while loop if receivedLen==0
-                   string DataStr = Encoding.ASCII.GetString(data, 0, receivedLength);
+                    string DataStr = Encoding.ASCII.GetString(data, 0, receivedLength);
                     Request newRequest = new Request(DataStr);
                     // TODO: Create a Request object using received request string
-                   Response NewResponse= HandleRequest(newRequest);
+                    Response NewResponse = HandleRequest(newRequest);
                     string Response = NewResponse.ResponseString;
                     // TODO: Call HandleRequest Method that returns the response
                     byte[] Res = Encoding.ASCII.GetBytes(Response);
@@ -92,27 +92,32 @@ namespace HTTPServer
         {
             throw new NotImplementedException();
             Response NewRes;
-            string content="";
+            string content = "";
             try
             {
-              bool flag=request.ParseRequest();
+                bool flag = request.ParseRequest();
                 string redirect = request.relativeURI;
+                string RedirectionPath;
+                StreamWriter writer;
                 //TODO: check for bad request 
                 if (flag)
                 {
-                   string c= Configuration.BadRequestDefaultPageName;
-                    NewRes = new Response(StatusCode.BadRequest, "text/html",content ,c);
+                    RedirectionPath = string.Format(Configuration.RootPath + "\\" + Configuration.BadRequestDefaultPageName);
+                    writer = new StreamWriter(string.Format(RedirectionPath));
+                    NewRes = new Response(StatusCode.BadRequest, "text/html", writer.ToString(), RedirectionPath);
                 }
                 //TODO: map the relativeURI in request to get the physical path of the resource.
                 GetRedirectionPagePathIFExist(redirect);
                 //TODO: check for redirect
-                
-                
+
+
                 //TODO: check file exists
 
                 //TODO: read the physical file
 
                 // Create OK response
+                writer.Close();
+                return NewRes;
             }
             catch (Exception ex)
             {
@@ -125,23 +130,23 @@ namespace HTTPServer
 
         private string GetRedirectionPagePathIFExist(string relativePath)
         {
-            
-           
+
+
             //Read the first line of text
 
 
             //Continue to read until you reach end of file
-                foreach(var Rule in Configuration.RedirectionRules)
+            foreach (var Rule in Configuration.RedirectionRules)
             {
                 if (relativePath.Equals(Rule.Key))
                 {
                     return Rule.Value;
                 }
             }
-        
-               
-             
-            
+
+
+
+
             //close the file
             // using Configuration.RedirectionRules return the redirected page path if exists else returns empty
 
@@ -152,7 +157,7 @@ namespace HTTPServer
         {
             string filePath = Path.Combine(Configuration.RootPath, defaultPageName);
             // TODO: check if filepath not exist log exception using Logger class and return empty string
-            
+
             if (!File.Exists(filePath))
             {
                 Exception ex = new FileNotFoundException();
@@ -160,8 +165,8 @@ namespace HTTPServer
             }
             else
             {
-                
-               //Response NewRes = new Response(StatusCode.OK, "text/html", "", defaultPageName);
+
+                //Response NewRes = new Response(StatusCode.OK, "text/html", "", defaultPageName);
             }
             // else read file and return its content
             return string.Empty;
@@ -181,7 +186,7 @@ namespace HTTPServer
                 {
                     line = sr.ReadLine();
                     string[] Arr = line.Split(',');
-                    Configuration.RedirectionRules.Add(Arr[0],Arr[1]);
+                    Configuration.RedirectionRules.Add(Arr[0], Arr[1]);
                 }
                 sr.Close();
 
