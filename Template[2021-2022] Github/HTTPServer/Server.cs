@@ -11,37 +11,41 @@ namespace HTTPServer
 {
     class Server
     {
+        int port;
         Socket serverSocket;
         IPEndPoint iep;
         public Server(int portNumber, string redirectionMatrixPath)
         {
-            iep = new IPEndPoint(IPAddress.Any, portNumber);
-            this.LoadRedirectionRules(redirectionMatrixPath);
-            this.serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            this.port = portNumber;
+            iep = new IPEndPoint(IPAddress.Any, this.port);
             //TODO: call this.LoadRedirectionRules passing redirectionMatrixPath to it
+            this.LoadRedirectionRules(redirectionMatrixPath);
             //TODO: initialize this.serverSocket
+            this.serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            serverSocket.Bind(iep);
         }
 
         public void StartServer()
         {
-            serverSocket.Bind(iep);
-            serverSocket.Listen(1000);
             // TODO: Listen to connections, with large backlog.
+            serverSocket.Listen(1000);
 
             // TODO: Accept connections in while loop and start a thread for each connection on function "Handle Connection"
             while (true)
             {
                 Socket clientSocket = this.serverSocket.Accept();
+                Console.WriteLine("Client Accepted");
 
                 Thread newthread = new Thread(new ParameterizedThreadStart(HandleConnection));
                 newthread.Start(clientSocket);
                 //TODO: accept connections and start thread for each accepted connection.
-
+                
             }
         }
 
         public void HandleConnection(object obj)
         {
+            Console.WriteLine("Handle Conn");
             Socket clientSock = (Socket)obj;
             clientSock.ReceiveTimeout = 0;
             byte[] data;
@@ -55,27 +59,28 @@ namespace HTTPServer
             {
                 try
                 {
+                    // TODO: Receive request
                     data = new byte[1024];
                     receivedLength = clientSock.Receive(data);
 
+                    // TODO: break the while loop if receivedLen==0
                     if (receivedLength == 0)
                     {
                         Console.WriteLine("Client: {0} ended the connection", clientSock.RemoteEndPoint);
                         break;
                     }
 
-                    // TODO: Receive request
-
-                    // TODO: break the while loop if receivedLen==0
+                    // TODO: Create a Request object using received request string
                     string DataStr = Encoding.ASCII.GetString(data, 0, receivedLength);
                     Request newRequest = new Request(DataStr);
-                    // TODO: Create a Request object using received request string
-                    Response NewResponse = HandleRequest(newRequest);
-                    string Response = NewResponse.ResponseString;
+
                     // TODO: Call HandleRequest Method that returns the response
-                    byte[] Res = Encoding.ASCII.GetBytes(Response);
-                    clientSock.Send(Res);
+                    Response NewResponse = HandleRequest(newRequest);
+                    string response = NewResponse.ResponseString;
+                    
                     // TODO: Send Response back to client
+                    byte[] Res = Encoding.ASCII.GetBytes(response);
+                    clientSock.Send(Res);
 
                 }
                 catch (Exception ex)
@@ -90,34 +95,65 @@ namespace HTTPServer
 
         Response HandleRequest(Request request)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            Console.WriteLine("Handle Request");
             Response NewRes;
             string content = "";
+            string Path;
+            StreamWriter writer = new StreamWriter(string.Empty);
+            
             try
             {
                 bool flag = request.ParseRequest();
                 string redirect = request.relativeURI;
-                string RedirectionPath;
-                StreamWriter writer;
                 //TODO: check for bad request 
-                if (flag)
+                if (!flag)
                 {
-                    RedirectionPath = string.Format(Configuration.RootPath + "\\" + Configuration.BadRequestDefaultPageName);
-                    writer = new StreamWriter(string.Format(RedirectionPath));
-                    NewRes = new Response(StatusCode.BadRequest, "text/html", writer.ToString(), RedirectionPath);
+                    Path = string.Format(Configuration.RootPath + "\\" + Configuration.BadRequestDefaultPageName);
+                    writer = new StreamWriter(string.Format(Path));
+                    NewRes = new Response(StatusCode.BadRequest, "text/html", writer.ToString(), Path);
+                    
                 }
-                //TODO: map the relativeURI in request to get the physical path of the resource.
-                GetRedirectionPagePathIFExist(redirect);
-                //TODO: check for redirect
+                else
+                {
+                    //TODO: map the relativeURI in request to get the physical path of the resource.
+                    string newRedirectPath = GetRedirectionPagePathIFExist(redirect);
+                    //TODO: check for redirect
+                    if(newRedirectPath != string.Empty)
+                    {
+                        //First Sending the Redirection Default Page
+                        Path = string.Format(Configuration.RootPath + "\\" + Configuration.RedirectionDefaultPageName);
+                        writer = new StreamWriter(string.Format(Path));
+                        NewRes = new Response(StatusCode.OK, "text/html", writer.ToString(), Path);
 
+                        //Second Sending the redirected Path
+                        Path = string.Format(Configuration.RootPath + "\\" + newRedirectPath);
+                        writer = new StreamWriter(string.Format(Path));
+                        NewRes = new Response(StatusCode.OK, "text/html", writer.ToString(), Path);
+                    }
+                    else
+                    {
+                        //TODO: check file exists
+                        Path = string.Format(Configuration.RootPath + "\\" + redirect);
 
-                //TODO: check file exists
+                        if (File.Exists(Path))
+                        {
+                            //TODO: read the physical file
+                            writer = new StreamWriter(string.Format(Path));
+                            // Create OK response
+                            NewRes = new Response(StatusCode.OK, "text/html", writer.ToString(), Path);
+                        }
+                        else
+                        {
+                            // Create Not Found response
+                            NewRes = new Response(StatusCode.NotFound, "text/html", writer.ToString(), Configuration.NotFoundDefaultPageName);
+                        }
 
-                //TODO: read the physical file
+                    }
 
-                // Create OK response
+                }
+                Console.WriteLine(writer.ToString());
                 writer.Close();
-                return NewRes;
             }
             catch (Exception ex)
             {
@@ -126,6 +162,7 @@ namespace HTTPServer
                 NewRes = new Response(StatusCode.InternalServerError, "text/html", content, Configuration.InternalErrorDefaultPageName);
                 // TODO: in case of exception, return Internal Server Error. 
             }
+            return NewRes;
         }
 
         private string GetRedirectionPagePathIFExist(string relativePath)
@@ -133,7 +170,7 @@ namespace HTTPServer
 
 
             //Read the first line of text
-
+            BinaryWriter wr = new BinaryWriter(File.Open("redirectionRules.txt", FileMode.Open));
 
             //Continue to read until you reach end of file
             foreach (var Rule in Configuration.RedirectionRules)

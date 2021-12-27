@@ -8,27 +8,23 @@ namespace HTTPServer
 {
     class Logger
     {
-        static StreamWriter sr = new StreamWriter("log.txt");
 
         public static void LogException(Exception ex)
         {
             // TODO: Create log file named log.txt to log exception details in it
 
 
-
             //Datetime:
             DateTime dateTimeNow = DateTime.Now;
+            using (StreamWriter sr = new StreamWriter("log.txt"))
+            {
+                sr.WriteLine(dateTimeNow.ToString() + " : ");
+                sr.Write(ex.ToString() + " : ");
+                sr.WriteLine(ex.Message);
+            }
 
             //message:
             // for each exception write its details associated with datetime 
-
-            using (sr)
-            {
-
-                sr.WriteLine(dateTimeNow.ToString() + "   :   ");
-                sr.Write(ex.ToString() + "  : ");
-                sr.WriteLine(ex.Message);
-            }
 
 
 

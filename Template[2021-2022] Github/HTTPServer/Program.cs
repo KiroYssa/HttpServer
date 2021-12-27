@@ -12,18 +12,22 @@ namespace HTTPServer
         {
             // TODO: Call CreateRedirectionRulesFile() function to create the rules of redirection 
             CreateRedirectionRulesFile();
-            Server NewServer = new Server(1000, "");
-            NewServer.StartServer();
+
             //Start server
             // 1) Make server object on port 1000
             // 2) Start Server
+            Server NewServer = new Server(1000, "redirectionRules.txt");
+            NewServer.StartServer();
+
+
+            Console.ReadLine();
         }
 
         static void CreateRedirectionRulesFile()
         {
             BinaryWriter wr = new BinaryWriter(File.Open("redirectionRules.txt", FileMode.Create));
-            wr.Write("aboutus.html,aboutus2.html");
-
+            wr.Write("aboutus.html,aboutus2.html\n");
+            wr.Close();
 
             // TODO: Create file named redirectionRules.txt
             // each line in the file specify a redirection rule

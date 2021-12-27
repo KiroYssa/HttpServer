@@ -26,7 +26,7 @@ namespace HTTPServer
                 return responseString;
             }
         }
-        StatusCode code;
+        //StatusCode code;
         List<string> headerLines = new List<string>();
         public Response(StatusCode code, string contentType, string content, string redirectoinPath)
         {
@@ -35,6 +35,9 @@ namespace HTTPServer
             headerLines.Add(GetStatusLine(code));
             headerLines.Add("Content-type: " + "text\\html");
             headerLines.Add("Content-Length: " + content.Length);
+            DateTime dateTimeNow = DateTime.Now;
+            headerLines.Add("Date: " + dateTimeNow);
+
             if (redirectoinPath.Length != 0)
             {
                 headerLines.Add("Location: " + redirectoinPath);
@@ -46,7 +49,7 @@ namespace HTTPServer
 
             }
 
-            responseString += content;
+            responseString += "\n" + content;
         }
 
         private string GetStatusLine(StatusCode code)
