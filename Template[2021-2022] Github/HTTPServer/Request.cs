@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -50,10 +50,6 @@ namespace HTTPServer
         public bool ParseRequest()
         {
 
-            //throw new NotImplementedException();
-
-            //TODO: parse the receivedRequest using the \r\n delimeter   
-
 
             if (requestString.Contains("\r\n"))
             {
@@ -74,18 +70,15 @@ namespace HTTPServer
                 // Load header lines into HeaderLines dictionary
                 if (ParseRequestLine() == true)
                     LoadHeaderLines(); //request Lines [1]
+                else
+                    return false;
 
-
-               
                 return true;
             }
             else
             {
                 return false;
             }
-
-
-
 
         }
 
@@ -98,7 +91,22 @@ namespace HTTPServer
             {
                 // make sure request line has 3 things(method, uri, version) 
 
-                method = RequestMethod.GET;
+                if (tempString[0].Equals("GET"))
+                {
+                    method = RequestMethod.GET;
+                }
+                else if (tempString[0].Equals("POST"))
+                {
+                    method = RequestMethod.POST;
+                }
+                else if (tempString[0].Equals("HEAD"))
+                {
+                    method = RequestMethod.HEAD;
+                }
+                else
+                {
+                    return false;
+                }
                 //since our program only deals with GET
                 relativeURI = tempString[1];
                 //uri is the second string in the array after spliting 
@@ -108,7 +116,7 @@ namespace HTTPServer
                     string[] HTTPVerTemp = tempString[2].Split('/');
 
                     // splitting the version to define which version it is and to make sure its HTTP 
-                    if (HTTPVerTemp[0] == "HTTP")
+                    if (HTTPVerTemp[0].Equals("HTTP"))
                     {
                         // for each case of versions
                         if (HTTPVerTemp[1].Contains("0.9"))
