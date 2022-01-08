@@ -98,18 +98,18 @@ namespace HTTPServer
         {
             //throw new NotImplementedException();
             Response NewRes;
-            string content="";
+            string HTMLcontent;
 
             try
             {
                  bool flag=request.ParseRequest();
-                string HTMLcontent;
+               
                 string redirect = request.relativeURI;
 
                 //TODO: check for bad request 
                 if (!flag)
                 {
-                    HTMLcontent = GetPhysicalFile(Configuration.BadRequestDefaultPageName);
+                    HTMLcontent = LoadDefaultPage(Configuration.BadRequestDefaultPageName);
                     NewRes = new Response(StatusCode.BadRequest, "text/html", HTMLcontent, "");
 
                 }
@@ -118,34 +118,33 @@ namespace HTTPServer
                    
                     //TODO: map the relativeURI in request to get the physical path of the resource.
                     string NotFoundTemp = string.Format(Configuration.RootPath + "\\" + redirect.Trim('/'));
-                    Console.WriteLine(NotFoundTemp);
+                    
                     //TODO: check for redirect
                     if (!File.Exists(NotFoundTemp))
                     {
 
                         Console.WriteLine("Not Found ");
 
-                        HTMLcontent = GetPhysicalFile(Configuration.NotFoundDefaultPageName);
-                        Console.WriteLine(HTMLcontent);
+                        HTMLcontent = LoadDefaultPage(Configuration.NotFoundDefaultPageName);
+                       
                         NewRes = new Response(StatusCode.NotFound, "text/html", HTMLcontent, "");
 
                     }
                     else
                     {
                         string RedirectedPage = GetRedirectionPagePathIFExist(redirect.Trim('/'));
-                        Console.WriteLine(RedirectedPage+120);
+                       
                         if (!RedirectedPage.Equals(string.Empty))
                         {
                             Console.WriteLine("In Redirection");
-                            HTMLcontent = GetPhysicalFile(Configuration.RedirectionDefaultPageName);
-                            Console.WriteLine(HTMLcontent);
+                            HTMLcontent = LoadDefaultPage(Configuration.RedirectionDefaultPageName);
+                           
                             NewRes = new Response(StatusCode.Redirect, "text/html", HTMLcontent, RedirectedPage);
                           
-                            
                         }
                         else
                         {
-                            HTMLcontent = GetPhysicalFile(redirect);
+                            HTMLcontent = LoadDefaultPage(redirect);
                             NewRes = new Response(StatusCode.OK, "text/html", HTMLcontent, "");
 
                         }
@@ -165,7 +164,8 @@ namespace HTTPServer
             {
                 Logger.LogException(ex);
                 // TODO: log exception using Logger class
-                NewRes = new Response(StatusCode.InternalServerError, "text/html", content, Configuration.InternalErrorDefaultPageName);
+                HTMLcontent = LoadDefaultPage(Configuration.InternalErrorDefaultPageName);
+                NewRes = new Response(StatusCode.InternalServerError, "text/html", HTMLcontent,"");
                 
                 // TODO: in case of exception, return Internal Server Error. 
             }
@@ -191,9 +191,6 @@ namespace HTTPServer
                 }
             }
         
-               
-             
-            
             //close the file
             // using Configuration.RedirectionRules return the redirected page path if exists else returns empty
 
@@ -202,21 +199,18 @@ namespace HTTPServer
 
         private string LoadDefaultPage(string defaultPageName)
         {
-            string filePath = Path.Combine(Configuration.RootPath, defaultPageName);
-            // TODO: check if filepath not exist log exception using Logger class and return empty string
-            
-            if (!File.Exists(filePath))
+
+            string PathFile = string.Format(Configuration.RootPath + "\\" + defaultPageName);
+            if (!File.Exists(PathFile))
             {
-                Exception ex = new FileNotFoundException();
-                Logger.LogException(ex);
+                Logger.LogException(new Exception("Default Page " + defaultPageName + " doesn't exist"));
+                return string.Empty;
             }
-            else
-            {
-                
-               //Response NewRes = new Response(StatusCode.OK, "text/html", "", defaultPageName);
-            }
-            // else read file and return its content
-            return string.Empty;
+            string data;
+            // Console.WriteLine(PathFile);
+            using (WebClient web1 = new WebClient())
+                data = web1.DownloadString(PathFile);//main.html
+            return data;
         }
 
         private void LoadRedirectionRules(string filePath)
@@ -248,15 +242,6 @@ namespace HTTPServer
             }
         }
 
-        private string GetPhysicalFile(string relativeURI)
-        {
-
-            string PathFile = string.Format(Configuration.RootPath + "\\" + relativeURI);
-            string data;
-            // Console.WriteLine(PathFile);
-            using (WebClient web1 = new WebClient())
-                data = web1.DownloadString(PathFile);//main.html
-            return data;
-        }
+       
     }
 }
